@@ -1,0 +1,10 @@
+{
+    "autoload": {
+        "psr-4": {
+            "App\\": ""
+        }
+    },
+    "require": {
+        "mikecao/flight": "^3.17"
+    }
+}
