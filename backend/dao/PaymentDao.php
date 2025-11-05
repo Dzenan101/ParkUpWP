@@ -1,56 +1,27 @@
 <?php
 namespace App\dao;
 
-use App\config\DB;
-use PDO;
+class PaymentDao extends BaseDao {
 
-class PaymentDao {
-
-    private PDO $conn;
-
-    public function __construct() {
-        $this->conn = DB::conn();
-    }
-
-    // Get all payments
     public function getAllPayments() {
-        $stmt = $this->conn->query("
-            SELECT p.*, r.id AS reservation_id, u.full_name AS user_name, l.name AS lot_name
-            FROM payments p
-            JOIN reservations r ON p.reservation_id = r.id
-            JOIN users u ON r.user_id = u.id
-            JOIN parking_spots s ON r.spot_id = s.id
-            JOIN parking_lots l ON s.lot_id = l.id
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->fetchAll("SELECT * FROM payments");
     }
 
-    // Get payments by user ID
-    public function getPaymentsByUser($user_id) {
-        $stmt = $this->conn->prepare("
-            SELECT p.*, r.id AS reservation_id, l.name AS lot_name
-            FROM payments p
-            JOIN reservations r ON p.reservation_id = r.id
-            JOIN parking_spots s ON r.spot_id = s.id
-            JOIN parking_lots l ON s.lot_id = l.id
-            WHERE r.user_id = ?
-        ");
-        $stmt->execute([$user_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function createPayment($data) {
+        $sql = "INSERT INTO payments (reservation_id, amount, payment_time)
+                VALUES (:reservation_id, :amount, :payment_time)";
+        $this->execute($sql, $data);
     }
 
-    // Create a new payment
-    public function createPayment($reservation_id, $amount) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO payments (reservation_id, amount)
-            VALUES (?, ?)
-        ");
-        return $stmt->execute([$reservation_id, $amount]);
+    public function updatePayment($id, $data) {
+        $sql = "UPDATE payments 
+                SET reservation_id = :reservation_id, amount = :amount, payment_time = :payment_time
+                WHERE id = :id";
+        $data['id'] = $id;
+        $this->execute($sql, $data);
     }
 
-    // Delete a payment
     public function deletePayment($id) {
-        $stmt = $this->conn->prepare("DELETE FROM payments WHERE id = ?");
-        return $stmt->execute([$id]);
+        $this->execute("DELETE FROM payments WHERE id = :id", [':id' => $id]);
     }
 }
