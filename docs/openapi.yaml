@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  title: ParkUp API
+  version: 1.0.0
+  description: API documentation for parking system (users, reservations, payments, parking lots, parking spots)
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: List of all users
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+      responses:
+        '200':
+          description: User created
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+      responses:
+        '200':
+          description: User fetched
+    put:
+      summary: Update user
+      parameters:
+        - in: path
+          name: id
+          required: true
+      responses:
+        '200':
+          description: Updated user
+    delete:
+      summary: Delete user
+      parameters:
+        - in: path
+          name: id
+          required: true
+      responses:
+        '200':
+          description: Deleted user
+  
+  /parking-lots:
+    get:
+      summary: Get all parking lots
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create parking lot
+      responses:
+        '200': { description: Created }
+
+  /parking-lots/{id}:
+    get:
+      summary: Get parking lot by ID
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Update parking lot
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Updated }
+    delete:
+      summary: Delete parking lot
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Deleted }
+
+  /parking-spots:
+    get:
+      summary: Get all parking spots
+      responses:
+        '200': { description: OK }
+
+  /parking-spots/lot/{lot_id}:
+    get:
+      summary: Get all spots for parking lot
+      parameters: [{ in: path, name: lot_id, required: true }]
+      responses:
+        '200': { description: OK }
+
+  /reservations:
+    get:
+      summary: Get all reservations
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create reservation
+      responses:
+        '200': { description: Created }
+
+  /reservations/{id}:
+    put:
+      summary: Update reservation status
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Updated }
+    delete:
+      summary: Delete reservation
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Deleted }
+
+  /payments:
+    get:
+      summary: Get all payments
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create payment
+      responses:
+        '200': { description: Created }
+
+  /payments/{id}:
+    get:
+      summary: Get payment by ID
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Update payment
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Updated }
+    delete:
+      summary: Delete payment
+      parameters: [{ in: path, name: id, required: true }]
+      responses:
+        '200': { description: Deleted }
+
