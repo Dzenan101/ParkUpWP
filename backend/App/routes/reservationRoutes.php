@@ -1,33 +1,58 @@
 <?php
 
-use Flight;
 use App\services\ReservationService;
 
-$service = new ReservationService();
-
-// GET ALL
-Flight::route('GET /reservations', function() use ($service) {
+// GET /reservations - list all (logged-in)
+Flight::route('GET /reservations', function () {
+    $service = new ReservationService();
     Flight::json($service->getAll());
 });
 
-// GET BY ID
-Flight::route('GET /reservations/@id', function($id) use ($service) {
-    Flight::json($service->getById($id));
+// GET /reservations/@id
+Flight::route('GET /reservations/@id', function ($id) {
+    $service = new ReservationService();
+    $res     = $service->getById($id);
+
+    if ($res === null) {
+        Flight::json(['error' => 'Reservation not found'], 404);
+    } else {
+        Flight::json($res);
+    }
 });
 
-// CREATE
-Flight::route('POST /reservations', function() use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->create($data));
+// POST /reservations - ADMIN ONLY
+Flight::route('POST /reservations', function () {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new ReservationService();
+
+    $newRes = $service->create($data);
+    Flight::json($newRes, 201);
 });
 
-// UPDATE
-Flight::route('PUT /reservations/@id', function($id) use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->update($id, $data));
+// PUT /reservations/@id - ADMIN ONLY
+Flight::route('PUT /reservations/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new ReservationService();
+
+    $updated = $service->update($id, $data);
+
+    if ($updated === null) {
+        Flight::json(['error' => 'Reservation not found'], 404);
+    } else {
+        Flight::json($updated);
+    }
 });
 
-// DELETE
-Flight::route('DELETE /reservations/@id', function($id) use ($service) {
-    Flight::json($service->delete($id));
+// DELETE /reservations/@id - ADMIN ONLY
+Flight::route('DELETE /reservations/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $service = new ReservationService();
+    $result  = $service->delete($id);
+
+    Flight::json($result);
 });

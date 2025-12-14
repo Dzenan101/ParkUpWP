@@ -1,33 +1,58 @@
 <?php
 
-use Flight;
 use App\services\PaymentService;
 
-$service = new PaymentService();
-
-// GET all
-Flight::route('GET /payments', function() use ($service) {
+// GET /payments - list all (logged-in)
+Flight::route('GET /payments', function () {
+    $service = new PaymentService();
     Flight::json($service->getAll());
 });
 
-// GET by ID
-Flight::route('GET /payments/@id', function($id) use ($service) {
-    Flight::json($service->getById($id));
+// GET /payments/@id
+Flight::route('GET /payments/@id', function ($id) {
+    $service = new PaymentService();
+    $payment = $service->getById($id);
+
+    if ($payment === null) {
+        Flight::json(['error' => 'Payment not found'], 404);
+    } else {
+        Flight::json($payment);
+    }
 });
 
-// CREATE
-Flight::route('POST /payments', function() use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->create($data));
+// POST /payments - ADMIN ONLY
+Flight::route('POST /payments', function () {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new PaymentService();
+
+    $newPayment = $service->create($data);
+    Flight::json($newPayment, 201);
 });
 
-// UPDATE
-Flight::route('PUT /payments/@id', function($id) use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->update($id, $data));
+// PUT /payments/@id - ADMIN ONLY
+Flight::route('PUT /payments/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new PaymentService();
+
+    $updated = $service->update($id, $data);
+
+    if ($updated === null) {
+        Flight::json(['error' => 'Payment not found'], 404);
+    } else {
+        Flight::json($updated);
+    }
 });
 
-// DELETE
-Flight::route('DELETE /payments/@id', function($id) use ($service) {
-    Flight::json($service->delete($id));
+// DELETE /payments/@id - ADMIN ONLY
+Flight::route('DELETE /payments/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $service = new PaymentService();
+    $result  = $service->delete($id);
+
+    Flight::json($result);
 });

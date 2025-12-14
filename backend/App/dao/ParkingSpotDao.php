@@ -1,49 +1,72 @@
 <?php
+
 namespace App\dao;
 
 use App\Config\DB;
-use PDO;
 
-class ParkingSpotDao {
+class ParkingSpotDao
+{
+    private \PDO $conn;
 
-    private PDO $conn;
-
-    public function __construct() {
-        $this->conn = DB::conn();
+    public function __construct()
+    {
+        $this->conn = DB::getConnection();
     }
 
-    public function getAll() {
-        return $this->conn->query("SELECT * FROM parking_spots")->fetchAll(PDO::FETCH_ASSOC);
+    public function getAll(): array
+    {
+        $stmt = $this->conn->query("SELECT * FROM parking_spots");
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getByLot($lot_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM parking_spots WHERE lot_id = ?");
-        $stmt->execute([$lot_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function getById($id): ?array
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM parking_spots WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return $row === false ? null : $row;
     }
 
-    public function create($data) {
+    public function create(array $data): ?array
+    {
         $stmt = $this->conn->prepare("
             INSERT INTO parking_spots (lot_id, spot_number, status)
             VALUES (?, ?, ?)
         ");
+
         $stmt->execute([
             $data['lot_id'],
             $data['spot_number'],
-            $data['status'] ?? 'available'
+            $data['status'] ?? 'available',
         ]);
-        return ["created" => true];
+
+        return $this->getById($this->conn->lastInsertId());
     }
 
-    public function update($id, $data) {
-        $stmt = $this->conn->prepare("UPDATE parking_spots SET status = ? WHERE id = ?");
-        $stmt->execute([$data['status'], $id]);
-        return ["updated" => true];
+    public function update($id, array $data): ?array
+    {
+        $stmt = $this->conn->prepare("
+            UPDATE parking_spots
+            SET lot_id = ?, spot_number = ?, status = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([
+            $data['lot_id'],
+            $data['spot_number'],
+            $data['status'],
+            $id,
+        ]);
+
+        return $this->getById($id);
     }
 
-    public function delete($id) {
-        $stmt = $this->conn->prepare("DELETE FROM parking_spots WHERE id=?");
+    public function delete($id): array
+    {
+        $stmt = $this->conn->prepare("DELETE FROM parking_spots WHERE id = ?");
         $stmt->execute([$id]);
-        return ["deleted" => true];
+
+        return ['deleted' => true];
     }
 }
