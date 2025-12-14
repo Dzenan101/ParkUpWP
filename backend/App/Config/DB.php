@@ -2,33 +2,31 @@
 
 namespace App\Config;
 
-use PDO;
-use PDOException;
-
 class DB
 {
-    private static ?PDO $conn = null;
+    private static ?\PDO $connection = null;
 
-    public static function conn(): PDO
+    public static function getConnection(): \PDO
     {
-        if (self::$conn === null) {
-            $host = 'localhost:3307';
-            $db   = 'parking_db';
-            $user = 'root';
-            $pass = ''; 
+        if (self::$connection === null) {
+            $host = '127.0.0.1';        // XAMPP host
+            $port = 3307;               // from your XAMPP screenshot
+            $dbname = 'parking_db';       // your DB name
+            $username = 'root';         // XAMPP default user
+            $password = '';             // XAMPP default password (empty string)
+
+            $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 
             try {
-                self::$conn = new PDO(
-                    "mysql:host=$host;dbname=$db;charset=utf8",
-                    $user,
-                    $pass
-                );
-                self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            } catch (PDOException $e) {
-                die('Connection failed: ' . $e->getMessage());
+                self::$connection = new \PDO($dsn, $username, $password, [
+                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                ]);
+            } catch (\PDOException $e) {
+                die('DB connection failed: ' . $e->getMessage());
             }
         }
 
-        return self::$conn;
+        return self::$connection;
     }
 }

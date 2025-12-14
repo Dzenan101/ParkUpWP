@@ -1,33 +1,58 @@
 <?php
 
-use Flight;
 use App\services\ParkingSpotService;
 
-$service = new ParkingSpotService();
-
-// GET all
-Flight::route('GET /parking-spots', function() use ($service) {
+// GET /parking-spots - list all (logged-in, checked by middleware)
+Flight::route('GET /parking-spots', function () {
+    $service = new ParkingSpotService();
     Flight::json($service->getAll());
 });
 
-// GET by lot
-Flight::route('GET /parking-spots/lot/@lot_id', function($lot_id) use ($service) {
-    Flight::json($service->getByLot($lot_id));
+// GET /parking-spots/@id
+Flight::route('GET /parking-spots/@id', function ($id) {
+    $service = new ParkingSpotService();
+    $spot    = $service->getById($id);
+
+    if ($spot === null) {
+        Flight::json(['error' => 'Parking spot not found'], 404);
+    } else {
+        Flight::json($spot);
+    }
 });
 
-// CREATE
-Flight::route('POST /parking-spots', function() use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->create($data));
+// POST /parking-spots - ADMIN ONLY
+Flight::route('POST /parking-spots', function () {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new ParkingSpotService();
+
+    $newSpot = $service->create($data);
+    Flight::json($newSpot, 201);
 });
 
-// UPDATE status
-Flight::route('PUT /parking-spots/@id', function($id) use ($service) {
-    $data = Flight::request()->data->getData();
-    Flight::json($service->update($id, $data));
+// PUT /parking-spots/@id - ADMIN ONLY
+Flight::route('PUT /parking-spots/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
+    $service = new ParkingSpotService();
+
+    $updated = $service->update($id, $data);
+
+    if ($updated === null) {
+        Flight::json(['error' => 'Parking spot not found'], 404);
+    } else {
+        Flight::json($updated);
+    }
 });
 
-// DELETE
-Flight::route('DELETE /parking-spots/@id', function($id) use ($service) {
-    Flight::json($service->delete($id));
+// DELETE /parking-spots/@id - ADMIN ONLY
+Flight::route('DELETE /parking-spots/@id', function ($id) {
+    Flight::requireRole('admin');
+
+    $service = new ParkingSpotService();
+    $result  = $service->delete($id);
+
+    Flight::json($result);
 });

@@ -9,7 +9,7 @@ class BaseDao {
     protected PDO $conn;
 
     public function __construct() {
-        $this->conn = DB::conn();
+        $this->conn = DB::getConnection();
     }
 
     protected function query($sql, $params = []) {

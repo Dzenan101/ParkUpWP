@@ -1,36 +1,58 @@
 <?php
 
-use Flight;
 use App\services\ParkingLotService;
 
-// GET all
+// GET /parking-lots - list all (public, already allowed in middleware)
 Flight::route('GET /parking-lots', function () {
     $service = new ParkingLotService();
     Flight::json($service->getAll());
 });
 
-// GET by ID
+// GET /parking-lots/@id - single lot (public)
 Flight::route('GET /parking-lots/@id', function ($id) {
     $service = new ParkingLotService();
-    Flight::json($service->getById($id));
+    $lot     = $service->getById($id);
+
+    if ($lot === null) {
+        Flight::json(['error' => 'Parking lot not found'], 404);
+    } else {
+        Flight::json($lot);
+    }
 });
 
-// CREATE
+// POST /parking-lots - create (ADMIN ONLY)
 Flight::route('POST /parking-lots', function () {
-    $data = Flight::request()->data->getData();
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
     $service = new ParkingLotService();
-    Flight::json($service->create($data));
+
+    $newLot = $service->create($data);
+    Flight::json($newLot, 201);
 });
 
-// UPDATE
+// PUT /parking-lots/@id - update (ADMIN ONLY)
 Flight::route('PUT /parking-lots/@id', function ($id) {
-    $data = Flight::request()->data->getData();
+    Flight::requireRole('admin');
+
+    $data    = Flight::request()->data->getData();
     $service = new ParkingLotService();
-    Flight::json($service->update($id, $data));
+
+    $updated = $service->update($id, $data);
+
+    if ($updated === null) {
+        Flight::json(['error' => 'Parking lot not found'], 404);
+    } else {
+        Flight::json($updated);
+    }
 });
 
-// DELETE
+// DELETE /parking-lots/@id - delete (ADMIN ONLY)
 Flight::route('DELETE /parking-lots/@id', function ($id) {
+    Flight::requireRole('admin');
+
     $service = new ParkingLotService();
-    Flight::json($service->delete($id));
+    $result  = $service->delete($id);
+
+    Flight::json($result);
 });
